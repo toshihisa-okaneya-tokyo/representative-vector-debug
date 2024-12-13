@@ -16,23 +16,38 @@ reset_matching_processor_localstack() {
 }
 
 reset_fridge_mongo() {
+    local matching_processor_docker_id
     local fridge_docker_id
+    matching_processor_docker_id="$(docker ps | grep matching-processor-cuisine-matching-mongo | cut -d' ' -f 1)"
     fridge_docker_id="$(docker ps | grep "mongo.*11020" | cut -d' ' -f 1)"
     mongo_auth_param="mongodb://gachapin:Cuisine-SandB0x@127.0.0.1:27017/fridge?authSource=admin"
 
-    local collection_dir
-    collection_dir="/home/tom/ghq/github.com/gachapin-pj/cuisine/matching-processor/tests/document_db"
-    # fridgeのDBの全collectionを一度削除
+    # エクスポート用ディレクトリ
+    export_dir="/tmp/matching_processor_export"
+    mkdir -p "${export_dir}"
+
+    # matching-processor の mongo からデータをエクスポート
+    docker exec "${matching_processor_docker_id}" mongoexport --uri "${mongo_auth_param}" --collection candidates --out /tmp/candidates.json
+    docker exec "${matching_processor_docker_id}" mongoexport --uri "${mongo_auth_param}" --collection enterprises --out /tmp/enterprises.json
+    docker exec "${matching_processor_docker_id}" mongoexport --uri "${mongo_auth_param}" --collection minorOccupations --out /tmp/minor_occupations.json
+
+    # エクスポートしたファイルをホストにコピー
+    docker cp "${matching_processor_docker_id}:/tmp/candidates.json" "${export_dir}/candidates.json"
+    docker cp "${matching_processor_docker_id}:/tmp/enterprises.json" "${export_dir}/enterprises.json"
+    docker cp "${matching_processor_docker_id}:/tmp/minor_occupations.json" "${export_dir}/minor_occupations.json"
+
+    # fridge の DB の全コレクションを削除
     docker exec "${fridge_docker_id}" mongosh "${mongo_auth_param}" --eval "db.candidates.deleteMany({})"
     docker exec "${fridge_docker_id}" mongosh "${mongo_auth_param}" --eval "db.enterprises.deleteMany({})"
     docker exec "${fridge_docker_id}" mongosh "${mongo_auth_param}" --eval "db.minorOccupations.deleteMany({})"
-    # fridgeのmongoを、matching-processorのmongo初期化に使用するjsonを使用して初期化
-    docker cp "${collection_dir}/candidates.json" "${fridge_docker_id}":/tmp/
-    docker cp "${collection_dir}/enterprises.json" "${fridge_docker_id}":/tmp/
-    docker cp "${collection_dir}/minor_occupations.json" "${fridge_docker_id}":/tmp/
-    docker exec "${fridge_docker_id}" mongoimport --uri "${mongo_auth_param}" --collection candidates --file /tmp/candidates.json --jsonArray
-    docker exec "${fridge_docker_id}" mongoimport --uri "${mongo_auth_param}" --collection enterprises --file /tmp/enterprises.json --jsonArray
-    docker exec "${fridge_docker_id}" mongoimport --uri "${mongo_auth_param}" --collection minorOccupations --file /tmp/minor_occupations.json --jsonArray
+
+    # fridge にデータをインポート
+    docker cp "${export_dir}/candidates.json" "${fridge_docker_id}":/tmp/
+    docker cp "${export_dir}/enterprises.json" "${fridge_docker_id}":/tmp/
+    docker cp "${export_dir}/minor_occupations.json" "${fridge_docker_id}":/tmp/
+    docker exec "${fridge_docker_id}" mongoimport --uri "${mongo_auth_param}" --collection candidates --file /tmp/candidates.json
+    docker exec "${fridge_docker_id}" mongoimport --uri "${mongo_auth_param}" --collection enterprises --file /tmp/enterprises.json
+    docker exec "${fridge_docker_id}" mongoimport --uri "${mongo_auth_param}" --collection minorOccupations --file /tmp/minor_occupations.json
 
     # 念のために代表vector全削除
     docker exec "${fridge_docker_id}" mongosh "${mongo_auth_param}" --eval "db.minorOccupations.updateMany({},{ \$set: {representativeVectors:[]}})"
