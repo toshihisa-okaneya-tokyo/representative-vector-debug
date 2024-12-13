@@ -27,14 +27,15 @@ reset_fridge_mongo() {
     mkdir -p "${export_dir}"
 
     # matching-processor の mongo からデータをエクスポート
-    docker exec "${matching_processor_docker_id}" mongoexport --uri "${mongo_auth_param}" --collection candidates --out /tmp/candidates.json
-    docker exec "${matching_processor_docker_id}" mongoexport --uri "${mongo_auth_param}" --collection enterprises --out /tmp/enterprises.json
-    docker exec "${matching_processor_docker_id}" mongoexport --uri "${mongo_auth_param}" --collection minorOccupations --out /tmp/minor_occupations.json
+    # 出力先を/tmpにするとpermission deniedになるときがあるので/root/配下に出力
+    docker exec "${matching_processor_docker_id}" mongoexport --uri "${mongo_auth_param}" --collection candidates --out /root/candidates.json
+    docker exec "${matching_processor_docker_id}" mongoexport --uri "${mongo_auth_param}" --collection enterprises --out /root/enterprises.json
+    docker exec "${matching_processor_docker_id}" mongoexport --uri "${mongo_auth_param}" --collection minorOccupations --out /root/minor_occupations.json
 
     # エクスポートしたファイルをホストにコピー
-    docker cp "${matching_processor_docker_id}:/tmp/candidates.json" "${export_dir}/candidates.json"
-    docker cp "${matching_processor_docker_id}:/tmp/enterprises.json" "${export_dir}/enterprises.json"
-    docker cp "${matching_processor_docker_id}:/tmp/minor_occupations.json" "${export_dir}/minor_occupations.json"
+    docker cp "${matching_processor_docker_id}:/root/candidates.json" "${export_dir}/candidates.json"
+    docker cp "${matching_processor_docker_id}:/root/enterprises.json" "${export_dir}/enterprises.json"
+    docker cp "${matching_processor_docker_id}:/root/minor_occupations.json" "${export_dir}/minor_occupations.json"
 
     # fridge の DB の全コレクションを削除
     docker exec "${fridge_docker_id}" mongosh "${mongo_auth_param}" --eval "db.candidates.deleteMany({})"
