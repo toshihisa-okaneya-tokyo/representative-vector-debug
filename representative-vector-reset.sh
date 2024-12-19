@@ -39,7 +39,6 @@ import_dev2_s3() {
         docker cp "${export_dir}/${key}" "${localstack_docker_id}":/root/"${key}"
         docker exec "${localstack_docker_id}" awslocal s3 cp /root/"${key}" s3://cuisine-localstack/"${key}"
     done
-
 }
 
 import_dev2_mongo() {
@@ -47,9 +46,9 @@ import_dev2_mongo() {
     local dev2_mongo_options
     dev2_mongo_options="--quiet --host cuisine.cluster-ch6yi0oook4r.ap-northeast-1.docdb.amazonaws.com:27017 --username gachapin --password wqkwc1LIg8SU2mhlwaRQ41YvSgjnf6bU --authenticationDatabase admin fridge"
     # 本来mongoexportでexportしたいが、dev2環境にはmongoexportがインストールされていないのでmongoで代用
-    ssh gachapin_dev2_bastion mongo ${dev2_mongo_options} --eval 'printjson\(db.candidates.find\(\).toArray\(\)\)' >/tmp/candidates.json
-    ssh gachapin_dev2_bastion mongo ${dev2_mongo_options} --eval 'printjson\(db.enterprises.find\(\).toArray\(\)\)' >/tmp/enterprises.json
-    ssh gachapin_dev2_bastion mongo ${dev2_mongo_options} --eval 'printjson\(db.minorOccupations.find\(\).toArray\(\)\)' >/tmp/minorOccupations.json
+    ssh gachapin_dev2_bastion mongo "${dev2_mongo_options}" --eval 'printjson\(db.candidates.find\(\).toArray\(\)\)' >/tmp/candidates.json
+    ssh gachapin_dev2_bastion mongo "${dev2_mongo_options}" --eval 'printjson\(db.enterprises.find\(\).toArray\(\)\)' >/tmp/enterprises.json
+    ssh gachapin_dev2_bastion mongo "${dev2_mongo_options}" --eval 'printjson\(db.minorOccupations.find\(\).toArray\(\)\)' >/tmp/minorOccupations.json
     sed -ri 's/ObjectId\((".*")\)/\1/' /tmp/candidates.json
     sed -ri 's/ObjectId\((".*")\)/\1/' /tmp/enterprises.json
     sed -ri 's/ObjectId\((".*")\)/\1/' /tmp/minorOccupations.json
