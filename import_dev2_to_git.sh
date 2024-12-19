@@ -69,6 +69,8 @@ import_to_matching_processor() {
     cd /home/tom/ghq/github.com/gachapin-pj/cuisine/matching-processor
     make down
     docker rmi matching-processor-localstack || true
+    docker rmi matching-processor-cuisine-matching-mongo || true
+    docker volume rm -f matching-processor_mongodb_data
     cd /home/tom/ghq/github.com/gachapin-pj/cuisine/matching-processor
     make ci
 }
