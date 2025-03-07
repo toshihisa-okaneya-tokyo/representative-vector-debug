@@ -33,10 +33,13 @@ export_mongo() {
     sed -ri 's/ObjectId\((".*")\)/\1/' /tmp/enterprises.json
     sed -ri 's/ObjectId\((".*")\)/\1/' /tmp/minor_occupations.json
     cp /tmp/candidates.json /home/tom/ghq/github.com/gachapin-pj/cuisine/matching-processor/tests/document_db/
+    cp /tmp/candidates.json /home/tom/ghq/github.com/gachapin-pj/cuisine/matching-calculator/tests/document_db/
     cp /tmp/candidates.json /home/tom/ghq/github.com/gachapin-pj/cuisine/fridge/tests/mock/documentDB/
     cp /tmp/enterprises.json /home/tom/ghq/github.com/gachapin-pj/cuisine/matching-processor/tests/document_db/
+    cp /tmp/enterprises.json /home/tom/ghq/github.com/gachapin-pj/cuisine/matching-calculator/tests/document_db/
     cp /tmp/enterprises.json /home/tom/ghq/github.com/gachapin-pj/cuisine/fridge/tests/mock/documentDB/
     cp /tmp/minor_occupations.json /home/tom/ghq/github.com/gachapin-pj/cuisine/matching-processor/tests/document_db/
+    cp /tmp/minor_occupations.json /home/tom/ghq/github.com/gachapin-pj/cuisine/matching-calculator/tests/document_db/
     cp /tmp/minor_occupations.json /home/tom/ghq/github.com/gachapin-pj/cuisine/fridge/tests/mock/documentDB/
 }
 
